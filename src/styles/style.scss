@@ -12,6 +12,7 @@ $dark-border: #404040;
 // Body style
 body {
     background-color: #f2f2f2;
+    overflow-x: hidden;
 }
 
 // Input for adding tasks
@@ -39,6 +40,7 @@ body {
 // Task cards
 .card {
     .card-body {
+        position: relative;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -117,6 +119,12 @@ footer {
 }
 
 // Dark mode
+.mode-toggle {
+    position: absolute;
+    right: 0;
+    padding: 0;
+}
+
 .dark-mode {
     background-color: $dark-bg;
     color: $dark-text;
@@ -124,6 +132,10 @@ footer {
     .card {
         background-color: $dark-card;
         border-color: $dark-border;
+
+        .card-text {
+            color: $dark-text;
+        }
     }
 
     #taskInput {
@@ -154,4 +166,21 @@ footer {
         background-color: $dark-bg;
         color: $dark-text;
     }
+}
+
+// Animations
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translatex(0);
+    }
+    to {
+        opacity: 0;
+        transform: translatex(100%);
+    }
+}
+
+// Task card styles
+.col-12 {
+    animation: fadeIn 0.3s ease-out;
 }

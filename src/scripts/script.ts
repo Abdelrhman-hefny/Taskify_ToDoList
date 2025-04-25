@@ -84,16 +84,17 @@ taskList.addEventListener("click", (event) => {
         const taskCard = clickedElement.closest(".col-12") as HTMLElement;
         const taskText = taskCard.querySelector("p")?.textContent || "";
 
-        if (confirm(`Are you sure you want to delete the task "${taskText}"?`)) {
-            taskCard.style.animation = "fadeOut 0.3s ease-out";
-            setTimeout(() => {
-                tasks.splice(taskIndex, 1);
-                localStorage.setItem("tasks", JSON.stringify(tasks));
-                renderTasks();
-                searchInput && filterTasks(searchInput.value.toLowerCase());
-            }, 300);
-        }
+
+        taskCard.style.animation = "fadeOut 0.3s ease-out";
+        setTimeout(() => {
+            tasks.splice(taskIndex, 1);
+            localStorage.setItem("tasks", JSON.stringify(tasks));
+            renderTasks();
+            searchInput && filterTasks(searchInput.value.toLowerCase());
+        }, 200);
     }
+
+
 });
 
 // Clear all tasks
@@ -155,6 +156,5 @@ if (lightModeToggle) {
         darkModeToggle?.classList.remove("d-none");
     });
 }
-
 
 
