@@ -145,5 +145,6 @@ if (lightModeToggle) {
         darkModeToggle === null || darkModeToggle === void 0 ? void 0 : darkModeToggle.classList.remove("d-none");
     });
 }
+i;
 
 //# sourceMappingURL=script.js.map
