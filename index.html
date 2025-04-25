@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskify - To Do List</title>
+
+    <!--  styles -->
+    <link rel="stylesheet" href="dist/styles/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="dist/styles/style.css">
+</head>
+
+<body>
+    <!-- Dark mode toggle -->
+    <div class="mode-toggle position-fixed top-0 end-0 m-3">
+        <button id="darkModeToggle" class="btn btn-outline-dark" title="Switch to Dark Mode">
+            <i class="fas fa-moon"></i>
+        </button>
+        <button id="lightModeToggle" class="btn btn-outline-light d-none" title="Switch to Light Mode">
+            <i class="fas fa-sun"></i>
+        </button>
+    </div>
+
+    <header>
+        <h1 class="text-center my-5 text-primary fw-bold">Taskify To Do List</h1>
+    </header>
+
+    <main class="container">
+        <!-- Add task input -->
+        <section>
+            <div class="d-flex justify-content-center align-items-center gap-2 w-50 mx-auto mb-4">
+                <input type="text" class="form-control p-3 fs-3" id="taskInput" placeholder="Add a new task">
+                <button class="btn btn-primary p-3" id="addTask">Add</button>
+            </div>
+        </section>
+
+        <!-- Task list section -->
+        <section>
+            <h2 class="text-center text-primary fw-bold mb-3">My Tasks</h2>
+            <button class="btn btn-danger p-1 px-2 mx-auto mb-3" id="clearAllTasks">Clear All</button>
+
+            <!-- Search bar -->
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-3" id="searchTask">
+                <input type="text" class="form-control p-3" placeholder="Search tasks">
+                <i class="fas fa-search"></i>
+            </div>
+
+            <!-- Task list -->
+            <div class="row" id="taskList"></div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class=" text-center p-3 g-2 mt-5 d-flex justify-content-center align-items-center">
+        <p class="mb-0 me-2">Taskify ©
+            <script>document.write(new Date().getFullYear())</script>
+        </p>
+        <a href="https://github.com/Abdelrhman-hefny" target="_blank" class="text-dark">
+            <i class="fab fa-github ms-2"></i> My GitHub
+        </a>
+    </footer>
+
+    <!-- <script src="src/scripts/bootstrap.bundle.min.js"></script> -->
+    <script src="dist/scripts/script.js"></script>
+</body>
+
+</html>

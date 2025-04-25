@@ -1,0 +1,157 @@
+// Colors for dark mode
+$dark-bg: #1a1a1a;
+$dark-card: #2c2c2c;
+$dark-text: #ffffff;
+$dark-border: #404040;
+
+// Reset styles
+* {
+    box-sizing: border-box;
+}
+
+// Body style
+body {
+    background-color: #f2f2f2;
+}
+
+// Input for adding tasks
+#taskInput {
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+
+// Buttons
+#addTask {
+    background-color: #0a74da;
+    color: white;
+    border-radius: 8px;
+    padding: 10px 20px;
+}
+
+#clearAllTasks {
+    background-color: #ff4c4c;
+    color: white;
+    border-radius: 8px;
+    padding: 10px 20px;
+}
+
+// Task cards
+.card {
+    .card-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .task-item-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            .check {
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            p {
+                font-size: 1.2rem;
+                margin: 0;
+            }
+        }
+
+        .editTask {
+            font-size: 1.5rem;
+            color: #0a74da;
+            cursor: pointer;
+        }
+
+        .btnDelete {
+            font-size: 1.5rem;
+            color: #ff4c4c;
+            cursor: pointer;
+        }
+    }
+}
+
+// Search bar
+#searchTask {
+    position: relative;
+    margin-bottom: 10px;
+
+    input {
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #ccc;
+    }
+
+    i {
+        font-size: 1.5rem;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+}
+
+// Completed tasks
+.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+// Footer
+footer {
+    background-color: #f2f2f2;
+    text-align: center;
+    padding: 10px;
+    margin-top: 20px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+// Dark mode
+.dark-mode {
+    background-color: $dark-bg;
+    color: $dark-text;
+
+    .card {
+        background-color: $dark-card;
+        border-color: $dark-border;
+    }
+
+    #taskInput {
+        background-color: $dark-card;
+        border-color: $dark-border;
+        color: $dark-text;
+    }
+
+    #searchTask input {
+        background-color: $dark-card;
+        border-color: $dark-border;
+        color: $dark-text;
+    }
+
+    .text-primary {
+        color: #4dabf7;
+    }
+
+    .btn-primary {
+        background-color: #0d6efd;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+    }
+
+    footer {
+        background-color: $dark-bg;
+        color: $dark-text;
+    }
+}
