@@ -9,6 +9,18 @@ body {
   min-height: 100vh;
 }
 
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+}
+
 #taskInput {
   border-radius: 8px 0 0 8px;
   padding: 15px;
