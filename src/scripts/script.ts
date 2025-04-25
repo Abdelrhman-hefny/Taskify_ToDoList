@@ -142,6 +142,7 @@ clearAllButton.addEventListener("click", () => {
 function filterTasks(searchText: string) {
     const taskElements = Array.from(taskList.children) as HTMLElement[];
     let visibleCount = 0;
+
     taskElements.forEach((taskElement, index) => {
         if (tasks[index]) {
             const taskText = tasks[index].text.toLowerCase();
@@ -149,8 +150,11 @@ function filterTasks(searchText: string) {
             if (taskText.includes(searchText)) visibleCount++;
         }
     });
+
     if (visibleCount === 0 && searchText) {
         taskList.innerHTML = '<p class="no-tasks text-center container" role="status">No tasks found</p>';
+    } else if (!searchText) {
+        renderTasks();
     }
 }
 
@@ -162,8 +166,6 @@ searchInput?.addEventListener("input", () => {
         filterTasks(searchInput.value.toLowerCase());
     }, 300);
 });
-
-
 
 // Load tasks on page start
 renderTasks();

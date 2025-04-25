@@ -144,6 +144,9 @@ function filterTasks(searchText) {
     if (visibleCount === 0 && searchText) {
         taskList.innerHTML = '<p class="no-tasks text-center container" role="status">No tasks found</p>';
     }
+    else if (!searchText) {
+        renderTasks();
+    }
 }
 // Debounce search input
 let searchTimeout;
