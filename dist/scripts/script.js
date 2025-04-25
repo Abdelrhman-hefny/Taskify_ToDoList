@@ -5,22 +5,43 @@ const addTaskButton = documentObj.getElementById("addTask");
 const taskList = documentObj.getElementById("taskList");
 const clearAllButton = documentObj.getElementById("clearAllTasks");
 const searchInput = documentObj.querySelector("#searchTask input");
-// Load tasks from localStorage
-let tasks = JSON.parse(localStorage.getItem("tasks") || "[]");
+const darkModeToggle = documentObj.getElementById("darkModeToggle");
+const lightModeToggle = documentObj.getElementById("lightModeToggle");
+// Load tasks from localStorage with validation
+let tasks = [];
+const storedTasks = localStorage.getItem("tasks");
+if (storedTasks) {
+    const parsedTasks = JSON.parse(storedTasks);
+    // Convert strings or invalid data to Task objects
+    tasks = parsedTasks.map((item) => {
+        if (typeof item === "string") {
+            return { text: item, isComplete: false };
+        }
+        return { text: item.text || "", isComplete: !!item.isComplete };
+    });
+}
 let editingTaskIndex = null;
 // Show tasks on the page
 function renderTasks() {
     taskList.innerHTML = "";
+    if (tasks.length === 0) {
+        taskList.innerHTML = '<p class="no-tasks text-center container" role="status">No tasks yet</p>';
+        return;
+    }
     tasks.forEach((task, index) => {
         const taskCard = document.createElement("div");
         taskCard.classList.add("col-12", "mb-3");
-        taskCard.dataset.index = index.toString(); // Store task index
+        taskCard.dataset.index = index.toString();
+        taskCard.setAttribute("role", "listitem");
+        if (task.isComplete) {
+            taskCard.classList.add("completed");
+        }
         taskCard.innerHTML = `
             <div class="card h-100">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div class="task-item-content d-flex align-items-center gap-2">
-                        <i class="fa-regular fa-square check"></i>
-                        <p class="card-text mb-0">${task}</p>
+                        <i class="fa-regular ${task.isComplete ? 'fa-square-check' : 'fa-square'} check"></i>
+                        <p class="card-text mb-0">${task.text}</p>
                     </div>
                     <div class="d-flex align-items-center gap-3">
                         <i class="fa-solid fa-pen-to-square text-primary editTask mx-3"></i>
@@ -50,12 +71,12 @@ addTaskButton.addEventListener("click", () => {
     const newTask = taskInput.value.trim();
     if (newTask) {
         if (editingTaskIndex !== null) {
-            tasks[editingTaskIndex] = newTask;
+            tasks[editingTaskIndex].text = newTask;
             editingTaskIndex = null;
             updateButtonText();
         }
         else {
-            tasks.push(newTask);
+            tasks.unshift({ text: newTask, isComplete: false });
         }
         taskInput.value = "";
         localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -65,31 +86,35 @@ addTaskButton.addEventListener("click", () => {
 });
 // Handle clicks on tasks (check, edit, delete)
 taskList.addEventListener("click", (event) => {
-    var _a, _b, _c, _d;
     const clickedElement = event.target;
     const taskCard = clickedElement.closest(".col-12");
     if (!taskCard)
         return;
     const taskIndex = parseInt(taskCard.dataset.index || "0");
     if (clickedElement.classList.contains("check")) {
-        (_b = (_a = clickedElement.parentElement) === null || _a === void 0 ? void 0 : _a.parentElement) === null || _b === void 0 ? void 0 : _b.classList.toggle("completed");
+        tasks[taskIndex].isComplete = !tasks[taskIndex].isComplete;
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        clickedElement.classList.toggle("fa-square");
+        clickedElement.classList.toggle("fa-square-check");
+        taskCard.classList.toggle("completed");
     }
     else if (clickedElement.classList.contains("editTask")) {
-        taskInput.value = ((_c = taskCard.querySelector("p")) === null || _c === void 0 ? void 0 : _c.textContent) || "";
+        taskInput.value = tasks[taskIndex].text;
         editingTaskIndex = taskIndex;
         updateButtonText();
         taskInput.focus();
     }
     else if (clickedElement.classList.contains("btnDelete")) {
-        const taskCard = clickedElement.closest(".col-12");
-        const taskText = ((_d = taskCard.querySelector("p")) === null || _d === void 0 ? void 0 : _d.textContent) || "";
-        taskCard.style.animation = "fadeOut 0.3s ease-out";
-        setTimeout(() => {
-            tasks.splice(taskIndex, 1);
-            localStorage.setItem("tasks", JSON.stringify(tasks));
-            renderTasks();
-            searchInput && filterTasks(searchInput.value.toLowerCase());
-        }, 200);
+        const taskText = tasks[taskIndex].text;
+        if (confirm(`Are you sure you want to delete the task "${taskText}"?`)) {
+            taskCard.style.animation = "fadeOut 0.3s ease-out";
+            taskCard.addEventListener("animationend", () => {
+                tasks.splice(taskIndex, 1);
+                localStorage.setItem("tasks", JSON.stringify(tasks));
+                renderTasks();
+                searchInput && filterTasks(searchInput.value.toLowerCase());
+            }, { once: true });
+        }
     }
 });
 // Clear all tasks
@@ -107,44 +132,47 @@ clearAllButton.addEventListener("click", () => {
 // Filter tasks based on search
 function filterTasks(searchText) {
     const taskElements = Array.from(taskList.children);
+    let visibleCount = 0;
     taskElements.forEach((taskElement, index) => {
-        var _a;
-        const taskText = ((_a = tasks[index]) === null || _a === void 0 ? void 0 : _a.toLowerCase()) || "";
-        taskElement.style.display = taskText.includes(searchText) ? "" : "none";
+        if (tasks[index]) {
+            const taskText = tasks[index].text.toLowerCase();
+            taskElement.style.display = taskText.includes(searchText) ? "" : "none";
+            if (taskText.includes(searchText))
+                visibleCount++;
+        }
     });
+    if (visibleCount === 0 && searchText) {
+        taskList.innerHTML = '<p class="no-tasks text-center container" role="status">No tasks found</p>';
+    }
 }
-// Live search
+// Debounce search input
+let searchTimeout;
 searchInput === null || searchInput === void 0 ? void 0 : searchInput.addEventListener("input", () => {
-    filterTasks(searchInput.value.toLowerCase());
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        filterTasks(searchInput.value.toLowerCase());
+    }, 300);
 });
 // Load tasks on page start
 renderTasks();
 // Dark mode toggle
-const darkModeToggle = documentObj.getElementById("darkModeToggle");
-const lightModeToggle = documentObj.getElementById("lightModeToggle");
-// Check for saved theme preference
 const savedTheme = localStorage.getItem("theme");
 if (savedTheme === "dark") {
     documentObj.body.classList.add("dark-mode");
     darkModeToggle === null || darkModeToggle === void 0 ? void 0 : darkModeToggle.classList.add("d-none");
     lightModeToggle === null || lightModeToggle === void 0 ? void 0 : lightModeToggle.classList.remove("d-none");
 }
-if (darkModeToggle) {
-    darkModeToggle.addEventListener("click", () => {
-        documentObj.body.classList.add("dark-mode");
-        localStorage.setItem("theme", "dark");
-        darkModeToggle.classList.add("d-none");
-        lightModeToggle === null || lightModeToggle === void 0 ? void 0 : lightModeToggle.classList.remove("d-none");
-    });
-}
-if (lightModeToggle) {
-    lightModeToggle.addEventListener("click", () => {
-        documentObj.body.classList.remove("dark-mode");
-        localStorage.setItem("theme", "light");
-        lightModeToggle.classList.add("d-none");
-        darkModeToggle === null || darkModeToggle === void 0 ? void 0 : darkModeToggle.classList.remove("d-none");
-    });
-}
-i;
+darkModeToggle === null || darkModeToggle === void 0 ? void 0 : darkModeToggle.addEventListener("click", () => {
+    documentObj.body.classList.add("dark-mode");
+    localStorage.setItem("theme", "dark");
+    darkModeToggle.classList.add("d-none");
+    lightModeToggle === null || lightModeToggle === void 0 ? void 0 : lightModeToggle.classList.remove("d-none");
+});
+lightModeToggle === null || lightModeToggle === void 0 ? void 0 : lightModeToggle.addEventListener("click", () => {
+    documentObj.body.classList.remove("dark-mode");
+    localStorage.setItem("theme", "light");
+    lightModeToggle.classList.add("d-none");
+    darkModeToggle === null || darkModeToggle === void 0 ? void 0 : darkModeToggle.classList.remove("d-none");
+});
 
 //# sourceMappingURL=script.js.map

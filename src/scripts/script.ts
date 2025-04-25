@@ -1,27 +1,54 @@
+interface Task {
+    text: string;
+    isComplete: boolean;
+}
+
 const documentObj = document;
 const taskInput = documentObj.getElementById("taskInput") as HTMLInputElement;
 const addTaskButton = documentObj.getElementById("addTask") as HTMLButtonElement;
 const taskList = documentObj.getElementById("taskList") as HTMLDivElement;
 const clearAllButton = documentObj.getElementById("clearAllTasks") as HTMLButtonElement;
 const searchInput = documentObj.querySelector("#searchTask input") as HTMLInputElement;
+const darkModeToggle = documentObj.getElementById("darkModeToggle") as HTMLButtonElement;
+const lightModeToggle = documentObj.getElementById("lightModeToggle") as HTMLButtonElement;
 
-// Load tasks from localStorage
-let tasks: string[] = JSON.parse(localStorage.getItem("tasks") || "[]");
+// Load tasks from localStorage with validation
+let tasks: Task[] = [];
+const storedTasks = localStorage.getItem("tasks");
+if (storedTasks) {
+    const parsedTasks = JSON.parse(storedTasks);
+    // Convert strings or invalid data to Task objects
+    tasks = parsedTasks.map((item: any) => {
+        if (typeof item === "string") {
+            return { text: item, isComplete: false };
+        }
+        return { text: item.text || "", isComplete: !!item.isComplete };
+    });
+}
 let editingTaskIndex: number | null = null;
 
 // Show tasks on the page
 function renderTasks() {
     taskList.innerHTML = "";
+    if (tasks.length === 0) {
+        taskList.innerHTML = '<p class="no-tasks text-center container" role="status">No tasks yet</p>';
+        return;
+    }
+
     tasks.forEach((task, index) => {
         const taskCard = document.createElement("div");
         taskCard.classList.add("col-12", "mb-3");
-        taskCard.dataset.index = index.toString(); // Store task index
+        taskCard.dataset.index = index.toString();
+        taskCard.setAttribute("role", "listitem");
+        if (task.isComplete) {
+            taskCard.classList.add("completed");
+        }
         taskCard.innerHTML = `
             <div class="card h-100">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div class="task-item-content d-flex align-items-center gap-2">
-                        <i class="fa-regular fa-square check"></i>
-                        <p class="card-text mb-0">${task}</p>
+                        <i class="fa-regular ${task.isComplete ? 'fa-square-check' : 'fa-square'} check"></i>
+                        <p class="card-text mb-0">${task.text}</p>
                     </div>
                     <div class="d-flex align-items-center gap-3">
                         <i class="fa-solid fa-pen-to-square text-primary editTask mx-3"></i>
@@ -52,11 +79,11 @@ addTaskButton.addEventListener("click", () => {
     const newTask = taskInput.value.trim();
     if (newTask) {
         if (editingTaskIndex !== null) {
-            tasks[editingTaskIndex] = newTask;
+            tasks[editingTaskIndex].text = newTask;
             editingTaskIndex = null;
             updateButtonText();
         } else {
-            tasks.push(newTask);
+            tasks.unshift({ text: newTask, isComplete: false });
         }
         taskInput.value = "";
         localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -74,27 +101,28 @@ taskList.addEventListener("click", (event) => {
     const taskIndex = parseInt(taskCard.dataset.index || "0");
 
     if (clickedElement.classList.contains("check")) {
-        clickedElement.parentElement?.parentElement?.classList.toggle("completed");
+        tasks[taskIndex].isComplete = !tasks[taskIndex].isComplete;
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+        clickedElement.classList.toggle("fa-square");
+        clickedElement.classList.toggle("fa-square-check");
+        taskCard.classList.toggle("completed");
     } else if (clickedElement.classList.contains("editTask")) {
-        taskInput.value = taskCard.querySelector("p")?.textContent || "";
+        taskInput.value = tasks[taskIndex].text;
         editingTaskIndex = taskIndex;
         updateButtonText();
         taskInput.focus();
     } else if (clickedElement.classList.contains("btnDelete")) {
-        const taskCard = clickedElement.closest(".col-12") as HTMLElement;
-        const taskText = taskCard.querySelector("p")?.textContent || "";
-
-
-        taskCard.style.animation = "fadeOut 0.3s ease-out";
-        setTimeout(() => {
-            tasks.splice(taskIndex, 1);
-            localStorage.setItem("tasks", JSON.stringify(tasks));
-            renderTasks();
-            searchInput && filterTasks(searchInput.value.toLowerCase());
-        }, 200);
+        const taskText = tasks[taskIndex].text;
+        if (confirm(`Are you sure you want to delete the task "${taskText}"?`)) {
+            taskCard.style.animation = "fadeOut 0.3s ease-out";
+            taskCard.addEventListener("animationend", () => {
+                tasks.splice(taskIndex, 1);
+                localStorage.setItem("tasks", JSON.stringify(tasks));
+                renderTasks();
+                searchInput && filterTasks(searchInput.value.toLowerCase());
+            }, { once: true });
+        }
     }
-
-
 });
 
 // Clear all tasks
@@ -113,25 +141,34 @@ clearAllButton.addEventListener("click", () => {
 // Filter tasks based on search
 function filterTasks(searchText: string) {
     const taskElements = Array.from(taskList.children) as HTMLElement[];
+    let visibleCount = 0;
     taskElements.forEach((taskElement, index) => {
-        const taskText = tasks[index]?.toLowerCase() || "";
-        taskElement.style.display = taskText.includes(searchText) ? "" : "none";
+        if (tasks[index]) {
+            const taskText = tasks[index].text.toLowerCase();
+            taskElement.style.display = taskText.includes(searchText) ? "" : "none";
+            if (taskText.includes(searchText)) visibleCount++;
+        }
     });
+    if (visibleCount === 0 && searchText) {
+        taskList.innerHTML = '<p class="no-tasks text-center container" role="status">No tasks found</p>';
+    }
 }
 
-// Live search
+// Debounce search input
+let searchTimeout: number | undefined;
 searchInput?.addEventListener("input", () => {
-    filterTasks(searchInput.value.toLowerCase());
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        filterTasks(searchInput.value.toLowerCase());
+    }, 300);
 });
+
+
 
 // Load tasks on page start
 renderTasks();
 
 // Dark mode toggle
-const darkModeToggle = documentObj.getElementById("darkModeToggle") as HTMLButtonElement;
-const lightModeToggle = documentObj.getElementById("lightModeToggle") as HTMLButtonElement;
-
-// Check for saved theme preference
 const savedTheme = localStorage.getItem("theme");
 if (savedTheme === "dark") {
     documentObj.body.classList.add("dark-mode");
@@ -139,22 +176,16 @@ if (savedTheme === "dark") {
     lightModeToggle?.classList.remove("d-none");
 }
 
-if (darkModeToggle) {
-    darkModeToggle.addEventListener("click", () => {
-        documentObj.body.classList.add("dark-mode");
-        localStorage.setItem("theme", "dark");
-        darkModeToggle.classList.add("d-none");
-        lightModeToggle?.classList.remove("d-none");
-    });
-}
+darkModeToggle?.addEventListener("click", () => {
+    documentObj.body.classList.add("dark-mode");
+    localStorage.setItem("theme", "dark");
+    darkModeToggle.classList.add("d-none");
+    lightModeToggle?.classList.remove("d-none");
+});
 
-if (lightModeToggle) {
-    lightModeToggle.addEventListener("click", () => {
-        documentObj.body.classList.remove("dark-mode");
-        localStorage.setItem("theme", "light");
-        lightModeToggle.classList.add("d-none");
-        darkModeToggle?.classList.remove("d-none");
-    });
-}
-
-
+lightModeToggle?.addEventListener("click", () => {
+    documentObj.body.classList.remove("dark-mode");
+    localStorage.setItem("theme", "light");
+    lightModeToggle.classList.add("d-none");
+    darkModeToggle?.classList.remove("d-none");
+});
