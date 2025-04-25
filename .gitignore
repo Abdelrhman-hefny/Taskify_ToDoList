@@ -5,7 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Build output
-dist/
+
 build/
 
 # IDE and editor files
@@ -20,12 +20,7 @@ build/
 .env.local
 .env.*.local
 
-# TypeScript
-*.tsbuildinfo
 
-# SCSS
-*.css.map
-*.scss.map
 
 # Logs
 logs/
